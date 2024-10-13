@@ -1,26 +1,26 @@
+import streamlit as st
 import requests
 import time
 
-# Agent Implementation
-def agent(master_url):
-    agent_id = "agent-001"  # Unique ID for the agent
+# Set up the Streamlit page
+st.set_page_config(layout="wide", page_title="Simple C2 Agent Node")
 
-    # Register with the master
-    registration_url = f"{master_url}/register_agent/"
-    response = requests.post(registration_url, json={"agent_id": agent_id})
-    if response.status_code == 200:
-        print(response.json()["message"])
+# Agent ID for this specific agent
+agent_id = "agent-001"  # Each agent should have a unique ID
 
-    while True:
-        # Polling for commands (You need to implement the command-fetching mechanism here)
-        time.sleep(5)
-        # Send command response to master
-        response_url = f"{master_url}/command_response/"
-        command_output = "Sample command output"  # Replace with actual command execution logic
-        response = requests.post(response_url, json={"agent_id": agent_id, "response": command_output})
+# Master node URL
+master_url = "https://m-dashboardpy-app9jfrumktgxrf359vu6t6.streamlit.app/"  # Replace with your deployed master node URL
+
+# Agent Registration and Polling for Commands
+if st.button("Poll Master for Commands"):
+    # Register and Poll master node using query parameters
+    try:
+        response = requests.get(f"{master_url}?agent_id={agent_id}")
         if response.status_code == 200:
-            print(response.json()["message"])
+            st.write("Polling successful.")
+    except requests.exceptions.RequestException as e:
+        st.error(f"Error connecting to master node: {e}")
 
-if __name__ == "__main__":
-    MASTER_URL = "http://127.0.0.1:8000"  # Replace with your master node URL
-    agent(MASTER_URL)
+# Display log information
+st.write(f"Agent ID: {agent_id}")
+st.write("Polling Master Node for Commands...")
