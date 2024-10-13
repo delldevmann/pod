@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import time
 
-#Set up the Streamlit page
+# Set up the Streamlit page
 st.set_page_config(layout="wide", page_title="Simple C2 Agent Node")
 
 # Agent ID for this specific agent
