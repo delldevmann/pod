@@ -8,8 +8,15 @@ st.set_page_config(layout="wide", page_title="Simple C2 Dashboard")
 
 # Function to get master node IP address
 def get_master_ip():
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
+    # Determine the IP address that can be used by other devices to connect
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+    except Exception:
+        ip_address = "127.0.0.1"
+    finally:
+        s.close()
     return ip_address
 
 # Display Master Node IP in the Sidebar
