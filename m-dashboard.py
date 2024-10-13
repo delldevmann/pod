@@ -24,7 +24,7 @@ if 'agents' not in st.session_state:
     st.session_state['agents'] = {}
 
 # Sidebar to show the master node information
-master_url = "https://your-app-name.streamlit.app/"  # Replace with your Streamlit app URL
+master_url = "https://m-dashboardpy-app9jfrumktgxrf359vu6t6.streamlit.app/"  # Replace with your Streamlit app URL
 master_ip = get_actual_ip()
 st.sidebar.title("Simple Command & Control (C2) Dashboard")
 st.sidebar.write("Master Node URL:")
