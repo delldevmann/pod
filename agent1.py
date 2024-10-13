@@ -18,6 +18,8 @@ if st.button("Poll Master for Commands"):
         response = requests.get(f"{master_url}?agent_id={agent_id}")
         if response.status_code == 200:
             st.write("Polling successful.")
+        else:
+            st.write(f"Failed with status code: {response.status_code}")
     except requests.exceptions.RequestException as e:
         st.error(f"Error connecting to master node: {e}")
 
