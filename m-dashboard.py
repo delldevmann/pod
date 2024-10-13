@@ -1,8 +1,21 @@
 import streamlit as st
+import socket
 import time
 
 # Set up the Streamlit page
 st.set_page_config(layout="wide", page_title="Simple C2 Master Node Dashboard")
+
+# Function to get the actual IP address of the machine
+def get_actual_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        s.connect(("8.8.8.8", 80))
+        ip_address = s.getsockname()[0]
+    except Exception:
+        ip_address = "127.0.0.1"
+    finally:
+        s.close()
+    return ip_address
 
 # Initialize the session state for logs and agents
 if 'logs' not in st.session_state:
@@ -11,10 +24,13 @@ if 'agents' not in st.session_state:
     st.session_state['agents'] = {}
 
 # Sidebar to show the master node information
-master_url = "https://m-dashboardpy-app9jfrumktgxrf359vu6t6.streamlit.app/"  # Replace with your Streamlit app URL
+master_url = "https://your-app-name.streamlit.app/"  # Replace with your Streamlit app URL
+master_ip = get_actual_ip()
 st.sidebar.title("Simple Command & Control (C2) Dashboard")
 st.sidebar.write("Master Node URL:")
 st.sidebar.write(master_url)
+st.sidebar.write("Master Node IP Address:")
+st.sidebar.write(master_ip)
 
 # Columns for displaying agents and commands
 col1, col2 = st.columns([1, 2])
