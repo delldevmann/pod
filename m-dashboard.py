@@ -63,6 +63,7 @@ st.text_area("Logs", st.session_state['logs'], height=300)
 params = st.experimental_get_query_params()
 if "agent_id" in params:
     agent_id = params["agent_id"][0]
+    st.write(f"Received agent_id: {agent_id}")  # Debugging line to confirm receipt
 
     # Register the agent if not already in session state
     if agent_id not in st.session_state['agents']:
