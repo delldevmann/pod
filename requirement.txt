@@ -2,3 +2,5 @@ streamlit
 fastapi
 uvicorn
 requests
+Flask
+jsonify
